@@ -8,32 +8,6 @@ const app = express();
 const port = 3000;
 
 app.use(cors());
-
-// // Multer configuration
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, 'uploads/') // Destination folder for storing uploaded files
-//   },
-//   filename: function (req, file, cb) {
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-//     cb(null, uniqueSuffix + path.extname(file.originalname)) // Unique filename for each upload
-//   }
-// });
-
-// const upload = multer({ storage: storage });
-
-// // POST endpoint to handle file upload
-// app.post('/upload', upload.single('file'), (req, res, next) => {
-//   try {
-//     if (!req.file) {
-//       return res.status(400).send('No files were uploaded.');
-//     }
-//     res.send('File uploaded successfully.');
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
