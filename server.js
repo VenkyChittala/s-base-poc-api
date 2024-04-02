@@ -9,31 +9,6 @@ const port = 3000;
 
 app.use(cors());
 
-// // Multer configuration
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, 'uploads/') // Destination folder for storing uploaded files
-//   },
-//   filename: function (req, file, cb) {
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-//     cb(null, uniqueSuffix + path.extname(file.originalname)) // Unique filename for each upload
-//   }
-// });
-
-// const upload = multer({ storage: storage });
-
-// // POST endpoint to handle file upload
-// app.post('/upload', upload.single('file'), (req, res, next) => {
-//   try {
-//     if (!req.file) {
-//       return res.status(400).send('No files were uploaded.');
-//     }
-//     res.send('File uploaded successfully.');
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -58,7 +33,6 @@ const storage = multer.diskStorage({
   
   const upload = multer({ storage: storage });
   
-  // Function to modify and export data
   async function modifyAndExportData(filePath) {
     return new Promise((resolve, reject) => {
       const workbook = XLSX.readFile(filePath);
@@ -75,12 +49,26 @@ const storage = multer.diskStorage({
       // Create a new workbook with the modified data
       const modifiedWorksheet = XLSX.utils.aoa_to_sheet(data);
       const modifiedWorkbook = { Sheets: { 'data': modifiedWorksheet }, SheetNames: ['data'] };
-      const modifiedFilePath = path.join(__dirname, 'temp', 'modified_file.xlsx');
-      XLSX.writeFile(modifiedFilePath, modifiedWorkbook);
   
-      resolve(modifiedFilePath);
+      // Write the modified workbook to a buffer
+      const buffer = XLSX.write(modifiedWorkbook, { type: 'buffer', bookType: 'xlsx' });
+  
+      // Construct the file path for the modified file
+      const modifiedFilePath = path.join("C:/Users/Varshini/Desktop/ang-poc/api/", 'temp', 'modified_file.xlsx');
+  
+      // Write the buffer to a file
+      fs.writeFile(modifiedFilePath, buffer, (err) => {
+        if (err) {
+          console.error('Error writing file:', err);
+          reject(err);
+        } else {
+          console.log('File written successfully:', modifiedFilePath);
+          resolve(modifiedFilePath);
+        }
+      });
     });
   }
+  
   
   // POST endpoint to handle file upload and modification
   app.post('/upload', upload.single('file'), async (req, res) => {
@@ -88,6 +76,7 @@ const storage = multer.diskStorage({
       if (!req.file) {
         return res.status(400).send('No files were uploaded.');
       }
+     // console.log('Uploaded file:', req.file.path);
       const modifiedFilePath = await modifyAndExportData(req.file.path);
       res.download(modifiedFilePath, 'modified_file.xlsx', (err) => {
         if (err) {
